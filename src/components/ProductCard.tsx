@@ -62,13 +62,14 @@ export interface Product {
 interface ProductCardProps {
   product: Product;
   index: number;
+  onClick?: (product: Product) => void;
 }
 
 // ============================================
 // ProductCard Component with 3D Tilt
 // ============================================
 
-const ProductCard = ({ product, index }: ProductCardProps) => {
+const ProductCard = ({ product, index, onClick }: ProductCardProps) => {
   const ref = useRef<HTMLDivElement>(null);
   const [isHovered, setIsHovered] = useState(false);
 
@@ -105,7 +106,7 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
   return (
     <motion.div
       ref={ref}
-      className="relative bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden group"
+      className="relative bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl overflow-hidden group cursor-pointer"
       style={{
         rotateX: isHovered ? rotateX : 0,
         rotateY: isHovered ? rotateY : 0,
@@ -115,11 +116,13 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
       onMouseMove={handleMouseMove}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={handleMouseLeave}
+      onClick={() => onClick?.(product)}
       variants={cardVariants}
       initial="hidden"
       whileInView="visible"
       viewport={{ once: true }}
       transition={{ delay: index * 0.1 }}
+      layoutId={`product-card-${product.id}`}
     >
       {/* Noise texture overlay */}
       <div 
@@ -149,7 +152,10 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
       )}
 
       {/* Product Image */}
-      <div className="relative h-48 bg-black/40 overflow-hidden flex items-center justify-center">
+      <motion.div 
+        className="relative h-48 bg-black/40 overflow-hidden flex items-center justify-center"
+        layoutId={`product-image-${product.id}`}
+      >
         <motion.div
           className="w-32 h-32 flex items-center justify-center"
           whileHover={imageHoverAnimation}
@@ -163,14 +169,17 @@ const ProductCard = ({ product, index }: ProductCardProps) => {
         
         {/* Gradient overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-background/80 to-transparent pointer-events-none" />
-      </div>
+      </motion.div>
 
       {/* Product Info */}
       <div className="p-4 relative z-10">
         {/* Title */}
-        <h3 className="font-inter text-sm text-foreground line-clamp-2 mb-3 min-h-[40px]">
+        <motion.h3 
+          layoutId={`product-title-${product.id}`}
+          className="font-inter text-sm text-foreground line-clamp-2 mb-3 min-h-[40px]"
+        >
           {product.name}
-        </h3>
+        </motion.h3>
 
         {/* Bottom Row */}
         <div className="flex items-center justify-between">
