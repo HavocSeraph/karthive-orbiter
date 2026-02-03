@@ -1,9 +1,77 @@
 import { useRef, useState, useEffect, forwardRef } from "react";
-import { motion, useInView, useSpring, useTransform, useMotionValue } from "framer-motion";
+import { motion, useInView, useSpring, useTransform, useMotionValue, Variants } from "framer-motion";
 import { Shield, Bell, Zap } from "lucide-react";
 import TextReveal from "./TextReveal";
 
+// ============================================
+// PERFORMANCE: All variants defined OUTSIDE components
+// ============================================
+
+const cardVariants: Variants = {
+  hidden: { opacity: 0, y: 50 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.6, ease: "easeOut" }
+  }
+};
+
+const fadeInVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { duration: 0.5 }
+  }
+};
+
+const pulseAnimation = {
+  scale: [1, 1.2, 1],
+  opacity: [0.5, 0.8, 0.5],
+};
+
+const outerPulseAnimation = {
+  scale: [1.2, 1.5, 1.2],
+  opacity: [0.3, 0.6, 0.3],
+};
+
+const shieldPulseAnimation = {
+  scale: [1, 1.05, 1],
+};
+
+const notificationVariants: Variants = {
+  hidden: { x: 100, opacity: 0, scale: 0.8 },
+  visible: { 
+    x: 0, 
+    opacity: 1, 
+    scale: 1,
+    transition: { type: "spring", damping: 20, stiffness: 300 }
+  }
+};
+
+const pathVariants: Variants = {
+  hidden: { pathLength: 0 },
+  visible: { 
+    pathLength: 1,
+    transition: { duration: 2, ease: "easeOut" }
+  }
+};
+
+const fillVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: { duration: 1, delay: 1.5 }
+  }
+};
+
+// Noise texture SVG (static, no re-renders)
+const noiseTextureSVG = `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`;
+
+// ============================================
 // 3D Tilt Card Component
+// ============================================
+
 const TiltCard = forwardRef<HTMLDivElement, { children: React.ReactNode; className?: string }>(
   ({ children, className = "" }, forwardedRef) => {
     const internalRef = useRef<HTMLDivElement>(null);
@@ -51,30 +119,32 @@ const TiltCard = forwardRef<HTMLDivElement, { children: React.ReactNode; classNa
         onMouseMove={handleMouseMove}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={handleMouseLeave}
-        initial={{ opacity: 0, y: 50 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: "-100px" }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
+        variants={cardVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-20%" }}
       >
-      {/* Noise texture overlay */}
-      <div 
-        className="absolute inset-0 opacity-30 pointer-events-none mix-blend-overlay"
-        style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 400 400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E")`,
-        }}
-      />
-      {/* Gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent pointer-events-none" />
-      {children}
-    </motion.div>
-  );
-});
+        {/* Noise texture overlay */}
+        <div 
+          className="absolute inset-0 opacity-30 pointer-events-none mix-blend-overlay"
+          style={{ backgroundImage: noiseTextureSVG }}
+        />
+        {/* Gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent pointer-events-none" />
+        {children}
+      </motion.div>
+    );
+  }
+);
 TiltCard.displayName = "TiltCard";
 
+// ============================================
 // Speed Card - Counting Animation
+// ============================================
+
 const SpeedCard = () => {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: true, margin: "-100px" });
+  const isInView = useInView(ref, { once: true, margin: "-20%" });
   const [count, setCount] = useState(0);
 
   useEffect(() => {
@@ -106,7 +176,7 @@ const SpeedCard = () => {
         <div className="flex items-center gap-2 mb-4">
           <Zap className="w-5 h-5 text-cyber-lime" />
           <span className="text-sm text-muted-foreground font-inter uppercase tracking-wider">
-            Lightning Fast
+            Real-Time Scrape Latency
           </span>
         </div>
         <div className="font-clash text-[8rem] md:text-[12rem] font-bold leading-none text-foreground">
@@ -121,18 +191,18 @@ const SpeedCard = () => {
   );
 };
 
-// Security Card - Pulsing Shield
+// ============================================
+// Security Card - Pulsing Shield with Emerald Aura
+// ============================================
+
 const SecurityCard = () => {
   return (
     <TiltCard className="md:col-span-4 col-span-1 p-8 flex flex-col items-center justify-center">
       <div className="relative">
-        {/* Glow rings */}
+        {/* Inner glow ring */}
         <motion.div
-          className="absolute inset-0 rounded-full bg-cyber-lime/20 blur-xl"
-          animate={{
-            scale: [1, 1.2, 1],
-            opacity: [0.5, 0.8, 0.5],
-          }}
+          className="absolute inset-0 rounded-full bg-success/20 blur-xl"
+          animate={pulseAnimation}
           transition={{
             duration: 2,
             repeat: Infinity,
@@ -140,12 +210,10 @@ const SecurityCard = () => {
           }}
           style={{ width: 120, height: 120, left: -10, top: -10 }}
         />
+        {/* Outer glow ring */}
         <motion.div
-          className="absolute inset-0 rounded-full bg-cyber-lime/10 blur-2xl"
-          animate={{
-            scale: [1.2, 1.5, 1.2],
-            opacity: [0.3, 0.6, 0.3],
-          }}
+          className="absolute inset-0 rounded-full bg-success/10 blur-2xl"
+          animate={outerPulseAnimation}
           transition={{
             duration: 2,
             repeat: Infinity,
@@ -156,34 +224,35 @@ const SecurityCard = () => {
         />
         
         <motion.div
-          animate={{
-            scale: [1, 1.05, 1],
-          }}
+          animate={shieldPulseAnimation}
           transition={{
             duration: 2,
             repeat: Infinity,
             ease: "easeInOut",
           }}
         >
-          <Shield className="w-24 h-24 text-cyber-lime relative z-10" strokeWidth={1.5} />
+          <Shield className="w-24 h-24 text-success relative z-10" strokeWidth={1.5} />
         </motion.div>
       </div>
       <p className="text-foreground font-clash text-xl mt-6 text-center">
-        Bank-Grade Security
+        Bank-Grade Privacy
       </p>
       <p className="text-muted-foreground font-inter text-sm text-center mt-2">
-        256-bit encryption
+        256-bit encryption • Zero data collection
       </p>
     </TiltCard>
   );
 };
 
+// ============================================
 // Price History Card - SVG Path Animation
+// ============================================
+
 const PriceHistoryCard = () => {
   const pathRef = useRef<SVGPathElement>(null);
-  const isInView = useInView(pathRef, { once: true, margin: "-100px" });
+  const isInView = useInView(pathRef, { once: true, margin: "-20%" });
 
-  // Mock price data points
+  // Mock price data points - more dynamic curve
   const path = "M 10 180 Q 50 150 80 160 T 150 120 T 220 140 T 290 80 T 360 100 T 430 40";
 
   return (
@@ -191,7 +260,7 @@ const PriceHistoryCard = () => {
       <div className="flex items-center gap-2 mb-4">
         <div className="w-2 h-2 rounded-full bg-cyber-lime animate-pulse" />
         <span className="text-sm text-muted-foreground font-inter uppercase tracking-wider">
-          Price Tracking
+          Price History
         </span>
       </div>
       
@@ -222,18 +291,18 @@ const PriceHistoryCard = () => {
             stroke="hsl(var(--cyber-lime))"
             strokeWidth="3"
             strokeLinecap="round"
-            initial={{ pathLength: 0 }}
-            animate={isInView ? { pathLength: 1 } : { pathLength: 0 }}
-            transition={{ duration: 2, ease: "easeOut" }}
+            variants={pathVariants}
+            initial="hidden"
+            animate={isInView ? "visible" : "hidden"}
           />
           
           {/* Gradient fill under the line */}
           <motion.path
             d={`${path} L 430 200 L 10 200 Z`}
             fill="url(#priceGradient)"
-            initial={{ opacity: 0 }}
-            animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-            transition={{ duration: 1, delay: 1.5 }}
+            variants={fillVariants}
+            initial="hidden"
+            animate={isInView ? "visible" : "hidden"}
           />
           
           <defs>
@@ -264,11 +333,14 @@ const PriceHistoryCard = () => {
   );
 };
 
-// Alerts Card - Notification Animation
+// ============================================
+// Alerts Card - macOS Notification Animation
+// ============================================
+
 const AlertsCard = () => {
   const [showNotification, setShowNotification] = useState(false);
   const cardRef = useRef<HTMLDivElement>(null);
-  const isInView = useInView(cardRef, { once: true, margin: "-100px" });
+  const isInView = useInView(cardRef, { once: true, margin: "-20%" });
 
   useEffect(() => {
     if (isInView) {
@@ -298,9 +370,9 @@ const AlertsCard = () => {
       {/* Mac-style notification */}
       <motion.div
         className="absolute top-4 right-4 w-80 bg-black/90 backdrop-blur-xl border border-white/20 rounded-xl p-4 shadow-2xl"
-        initial={{ x: 100, opacity: 0, scale: 0.8 }}
-        animate={showNotification ? { x: 0, opacity: 1, scale: 1 } : { x: 100, opacity: 0, scale: 0.8 }}
-        transition={{ type: "spring", damping: 20, stiffness: 300 }}
+        variants={notificationVariants}
+        initial="hidden"
+        animate={showNotification ? "visible" : "hidden"}
       >
         <div className="flex items-start gap-3">
           <div className="w-10 h-10 rounded-lg bg-cyber-lime/20 flex items-center justify-center flex-shrink-0">
@@ -309,10 +381,10 @@ const AlertsCard = () => {
           <div className="flex-1 min-w-0">
             <p className="text-sm font-semibold text-foreground font-inter">KartHive Alert</p>
             <p className="text-xs text-muted-foreground font-inter mt-0.5">
-              AirPods Pro dropped to ₹18,999 on Amazon!
+              iPhone 15 dropped to ₹68,000 on Flipkart!
             </p>
-            <p className="text-xs text-cyber-lime font-inter mt-1">
-              -23% from your target price
+            <p className="text-xs text-success font-inter mt-1 font-bold">
+              -18% from your target price
             </p>
           </div>
         </div>
@@ -320,6 +392,10 @@ const AlertsCard = () => {
     </TiltCard>
   );
 };
+
+// ============================================
+// Main BentoGrid Component
+// ============================================
 
 const BentoGrid = () => {
   return (
@@ -329,9 +405,10 @@ const BentoGrid = () => {
         <div className="mb-16 text-center">
           <motion.p
             className="text-cyber-lime font-inter text-sm uppercase tracking-[0.3em] mb-4"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeInVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-20%" }}
           >
             Features
           </motion.p>
@@ -341,7 +418,7 @@ const BentoGrid = () => {
         </div>
 
         {/* Bento Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-12 auto-rows-[300px] gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-12 auto-rows-[300px] gap-6">
           <SpeedCard />
           <SecurityCard />
           <PriceHistoryCard />

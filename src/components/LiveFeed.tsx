@@ -1,7 +1,81 @@
 import { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, Variants } from "framer-motion";
 import { Terminal, TrendingDown } from "lucide-react";
 import TextReveal from "./TextReveal";
+
+// ============================================
+// PERFORMANCE: All variants defined OUTSIDE components
+// ============================================
+
+const feedItemVariants: Variants = {
+  hidden: { opacity: 0, y: -20, height: 0 },
+  visible: { 
+    opacity: 1, 
+    y: 0, 
+    height: "auto",
+    transition: { type: "spring", damping: 25, stiffness: 300 }
+  },
+  exit: { opacity: 0, y: 20 }
+};
+
+const slideInLeftVariants: Variants = {
+  hidden: { opacity: 0, x: -50 },
+  visible: { 
+    opacity: 1, 
+    x: 0,
+    transition: { duration: 0.6 }
+  }
+};
+
+const slideInRightVariants: Variants = {
+  hidden: { opacity: 0, x: 50 },
+  visible: { 
+    opacity: 1, 
+    x: 0,
+    transition: { duration: 0.6, delay: 0.2 }
+  }
+};
+
+const fadeInUpVariants: Variants = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+  }
+};
+
+const cursorBlinkAnimation = {
+  opacity: [1, 0],
+};
+
+// ============================================
+// Mock Data (Static - no re-renders)
+// ============================================
+
+const mockProducts = [
+  { name: "MACBOOK_AIR_M3", retailer: "AMAZON" },
+  { name: "SONY_XM5", retailer: "FLIPKART" },
+  { name: "IPHONE_15_PRO", retailer: "CROMA" },
+  { name: "GALAXY_S24_ULTRA", retailer: "AMAZON" },
+  { name: "IPAD_PRO_12", retailer: "APPLE" },
+  { name: "AIRPODS_PRO_2", retailer: "FLIPKART" },
+  { name: "PS5_SLIM", retailer: "AMAZON" },
+  { name: "SWITCH_OLED", retailer: "CROMA" },
+  { name: "DYSON_V15", retailer: "AMAZON" },
+  { name: "LG_C3_OLED_55", retailer: "FLIPKART" },
+  { name: "BOSE_QC_ULTRA", retailer: "AMAZON" },
+  { name: "PIXEL_8_PRO", retailer: "FLIPKART" },
+] as const;
+
+const statsData = [
+  { label: "Price Drops Today", value: "2,847", trend: "+12%" },
+  { label: "Active Trackers", value: "156K", trend: "+8%" },
+  { label: "Money Saved", value: "₹4.2Cr", trend: "+24%" },
+] as const;
+
+// ============================================
+// Types
+// ============================================
 
 interface SaleItem {
   id: number;
@@ -11,20 +85,9 @@ interface SaleItem {
   timestamp: Date;
 }
 
-const mockProducts = [
-  { name: "MacBook Air M3", retailer: "Amazon" },
-  { name: "Sony WH-1000XM5", retailer: "Flipkart" },
-  { name: "iPhone 15 Pro Max", retailer: "Croma" },
-  { name: "Samsung Galaxy S24", retailer: "Amazon" },
-  { name: "iPad Pro 12.9", retailer: "Apple Store" },
-  { name: "AirPods Pro 2", retailer: "Flipkart" },
-  { name: "PS5 Console", retailer: "Amazon" },
-  { name: "Nintendo Switch OLED", retailer: "Croma" },
-  { name: "Dyson V15 Detect", retailer: "Amazon" },
-  { name: "LG C3 OLED TV 55\"", retailer: "Flipkart" },
-  { name: "Bose QC Ultra", retailer: "Amazon" },
-  { name: "Google Pixel 8 Pro", retailer: "Flipkart" },
-];
+// ============================================
+// LiveFeed Component
+// ============================================
 
 const LiveFeed = () => {
   const [sales, setSales] = useState<SaleItem[]>([]);
@@ -45,7 +108,7 @@ const LiveFeed = () => {
     setSales(initialItems);
     setIdCounter(3);
 
-    // Add new sale every 2 seconds
+    // Simulate live socket: Add new sale every 2 seconds
     const interval = setInterval(() => {
       const product = mockProducts[Math.floor(Math.random() * mockProducts.length)];
       setIdCounter((prev) => {
@@ -84,9 +147,10 @@ const LiveFeed = () => {
         <div className="mb-16">
           <motion.p
             className="text-cyber-lime font-inter text-sm uppercase tracking-[0.3em] mb-4"
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
+            variants={fadeInUpVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-20%" }}
           >
             Live Feed
           </motion.p>
@@ -96,13 +160,13 @@ const LiveFeed = () => {
         </div>
 
         <div className="grid md:grid-cols-2 gap-8">
-          {/* Terminal Window */}
+          {/* Hacker Terminal Window */}
           <motion.div
             className="relative"
-            initial={{ opacity: 0, x: -50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6 }}
+            variants={slideInLeftVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-20%" }}
           >
             <div className="bg-black/80 backdrop-blur-xl border border-white/10 rounded-2xl overflow-hidden">
               {/* Terminal Header */}
@@ -130,10 +194,11 @@ const LiveFeed = () => {
                   {sales.map((sale) => (
                     <motion.div
                       key={sale.id}
-                      initial={{ opacity: 0, y: -20, height: 0 }}
-                      animate={{ opacity: 1, y: 0, height: "auto" }}
-                      exit={{ opacity: 0, y: 20 }}
-                      transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                      layout
+                      variants={feedItemVariants}
+                      initial="hidden"
+                      animate="visible"
+                      exit="exit"
                       className="mb-3"
                     >
                       <div className="flex items-start gap-2">
@@ -141,10 +206,12 @@ const LiveFeed = () => {
                           [{formatTime(sale.timestamp)}]
                         </span>
                         <div className="flex-1">
+                          <span className="text-yellow-500">ALERT</span>
+                          <span className="text-muted-foreground"> :: </span>
                           <span className="text-foreground">{sale.product}</span>
-                          <span className="text-muted-foreground"> dropped by </span>
+                          <span className="text-muted-foreground"> :: DROP </span>
                           <span className="text-success font-bold">-{sale.percent}%</span>
-                          <span className="text-muted-foreground"> on </span>
+                          <span className="text-muted-foreground"> @ </span>
                           <span className="text-cyber-lime">{sale.retailer}</span>
                         </div>
                       </div>
@@ -155,7 +222,7 @@ const LiveFeed = () => {
                 {/* Blinking cursor */}
                 <motion.span
                   className="inline-block w-2 h-4 bg-cyber-lime"
-                  animate={{ opacity: [1, 0] }}
+                  animate={cursorBlinkAnimation}
                   transition={{ duration: 0.8, repeat: Infinity }}
                 />
               </div>
@@ -165,22 +232,19 @@ const LiveFeed = () => {
           {/* Stats Panel */}
           <motion.div
             className="flex flex-col gap-6"
-            initial={{ opacity: 0, x: 50 }}
-            whileInView={{ opacity: 1, x: 0 }}
-            viewport={{ once: true, margin: "-100px" }}
-            transition={{ duration: 0.6, delay: 0.2 }}
+            variants={slideInRightVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-20%" }}
           >
             {/* Stat Cards */}
-            {[
-              { label: "Price Drops Today", value: "2,847", trend: "+12%" },
-              { label: "Active Trackers", value: "156K", trend: "+8%" },
-              { label: "Money Saved", value: "₹4.2Cr", trend: "+24%" },
-            ].map((stat, index) => (
+            {statsData.map((stat, index) => (
               <motion.div
                 key={stat.label}
                 className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6"
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                variants={fadeInUpVariants}
+                initial="hidden"
+                whileInView="visible"
                 viewport={{ once: true }}
                 transition={{ delay: 0.1 * index }}
               >
