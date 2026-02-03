@@ -41,6 +41,8 @@
     --cyber-lime-glow: 0 0 30px -5px hsla(75, 100%, 50%, 0.6);
     --deep-black: 0 0% 2%;
     --grid-color: 0 0% 20%;
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 98%;
   }
 
   .dark {
