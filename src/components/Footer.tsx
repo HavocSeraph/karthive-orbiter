@@ -1,7 +1,71 @@
 import { useRef, useState } from "react";
-import { motion, useSpring, useMotionValue, useTransform } from "framer-motion";
+import { motion, useSpring, useMotionValue, Variants } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import TextReveal from "./TextReveal";
+
+// ============================================
+// PERFORMANCE: All variants defined OUTSIDE components
+// ============================================
+
+const ctaButtonVariants: Variants = {
+  hidden: { scale: 0, rotate: -180 },
+  visible: { 
+    scale: 1, 
+    rotate: 0,
+    transition: {
+      type: "spring",
+      stiffness: 200,
+      damping: 20,
+      delay: 0.5,
+    }
+  }
+};
+
+const fadeInVariants: Variants = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: { duration: 0.5 }
+  }
+};
+
+const slideUpVariants: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: { delay: 0.8 }
+  }
+};
+
+// ============================================
+// Static Data (no re-renders)
+// ============================================
+
+const footerColumns = [
+  {
+    title: "Product",
+    links: ["Features", "Pricing", "Extensions", "API"],
+  },
+  {
+    title: "Company",
+    links: ["About", "Blog", "Careers", "Press"],
+  },
+  {
+    title: "Resources",
+    links: ["Documentation", "Help Center", "Community", "Status"],
+  },
+  {
+    title: "Legal",
+    links: ["Privacy", "Terms", "Cookies", "Licenses"],
+  },
+] as const;
+
+const socialLinks = ["Twitter", "GitHub", "Discord"] as const;
+
+// ============================================
+// Magnetic CTA Button Component
+// ============================================
 
 const MagneticCTA = () => {
   const ref = useRef<HTMLButtonElement>(null);
@@ -48,20 +112,15 @@ const MagneticCTA = () => {
     >
       <motion.button
         ref={ref}
-        className="relative w-[180px] h-[180px] rounded-full bg-cyber-lime text-background font-clash font-bold text-xl flex items-center justify-center gap-2 group overflow-hidden"
+        className="relative w-48 h-48 rounded-full bg-cyber-lime text-background font-clash font-bold text-xl flex items-center justify-center gap-2 group overflow-hidden"
         style={{ x, y }}
         onMouseEnter={() => setIsHovered(true)}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        initial={{ scale: 0, rotate: -180 }}
-        whileInView={{ scale: 1, rotate: 0 }}
+        variants={ctaButtonVariants}
+        initial="hidden"
+        whileInView="visible"
         viewport={{ once: true }}
-        transition={{
-          type: "spring",
-          stiffness: 200,
-          damping: 20,
-          delay: 0.5,
-        }}
       >
         {/* Ripple effect on hover */}
         <motion.div
@@ -78,6 +137,10 @@ const MagneticCTA = () => {
   );
 };
 
+// ============================================
+// Main Footer Component
+// ============================================
+
 const Footer = () => {
   const [isHovered, setIsHovered] = useState(false);
 
@@ -86,14 +149,15 @@ const Footer = () => {
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-t from-cyber-lime/5 via-transparent to-transparent pointer-events-none" />
       
-      {/* Massive Typography */}
+      {/* Massive Typography with Metallic Gradient Mask */}
       <motion.div
         className="relative text-center mb-16"
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true, margin: "-100px" }}
+        variants={fadeInVariants}
+        initial="hidden"
+        whileInView="visible"
+        viewport={{ once: true, margin: "-20%" }}
       >
         <h2 
           className="font-clash font-bold text-[15vw] md:text-[15vw] leading-[0.85] tracking-tighter"
@@ -119,30 +183,13 @@ const Footer = () => {
       {/* Footer Links */}
       <motion.div
         className="mt-24 w-full max-w-7xl border-t border-white/10 pt-12"
-        initial={{ opacity: 0, y: 30 }}
-        whileInView={{ opacity: 1, y: 0 }}
+        variants={slideUpVariants}
+        initial="hidden"
+        whileInView="visible"
         viewport={{ once: true }}
-        transition={{ delay: 0.8 }}
       >
         <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
-          {[
-            {
-              title: "Product",
-              links: ["Features", "Pricing", "Extensions", "API"],
-            },
-            {
-              title: "Company",
-              links: ["About", "Blog", "Careers", "Press"],
-            },
-            {
-              title: "Resources",
-              links: ["Documentation", "Help Center", "Community", "Status"],
-            },
-            {
-              title: "Legal",
-              links: ["Privacy", "Terms", "Cookies", "Licenses"],
-            },
-          ].map((column) => (
+          {footerColumns.map((column) => (
             <div key={column.title}>
               <h3 className="font-clash font-bold text-foreground mb-4">
                 {column.title}
@@ -175,7 +222,7 @@ const Footer = () => {
           </p>
 
           <div className="flex items-center gap-4">
-            {["Twitter", "GitHub", "Discord"].map((social) => (
+            {socialLinks.map((social) => (
               <a
                 key={social}
                 href="#"
