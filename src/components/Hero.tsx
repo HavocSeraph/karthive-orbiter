@@ -7,10 +7,26 @@ import OrbitingLogos from "./OrbitingLogos";
 import MagneticButton from "./MagneticButton";
 import CustomCursor from "./CustomCursor";
 
-const Hero = () => {
+interface HeroProps {
+  onSearch?: (query: string) => void;
+}
+
+const Hero = ({ onSearch }: HeroProps) => {
   const [isFocused, setIsFocused] = useState(false);
   const [searchValue, setSearchValue] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const handleSearch = () => {
+    if (searchValue.trim() && onSearch) {
+      onSearch(searchValue.trim());
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
+  };
 
   const handleFocus = () => setIsFocused(true);
   const handleBlur = () => {
@@ -104,6 +120,7 @@ const Hero = () => {
                 onChange={(e) => setSearchValue(e.target.value)}
                 onFocus={handleFocus}
                 onBlur={handleBlur}
+                onKeyDown={handleKeyDown}
                 className="flex-1 py-4 pr-4 bg-transparent text-foreground placeholder:text-muted-foreground focus:outline-none text-base"
                 style={{ cursor: "none" }}
               />
@@ -118,7 +135,10 @@ const Hero = () => {
                     transition={{ duration: 0.2 }}
                   >
                     <MagneticButton>
-                      <button className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors">
+                      <button 
+                        className="flex items-center gap-2 px-5 py-2.5 rounded-full bg-primary text-primary-foreground font-semibold text-sm hover:bg-primary/90 transition-colors"
+                        onClick={handleSearch}
+                      >
                         <span>Search</span>
                         <ArrowRight className="w-4 h-4" />
                       </button>
