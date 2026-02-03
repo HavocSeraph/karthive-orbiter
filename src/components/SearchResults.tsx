@@ -1,7 +1,9 @@
-import { motion, Variants } from "framer-motion";
+import { useState } from "react";
+import { motion, Variants, AnimatePresence } from "framer-motion";
 import { ArrowLeft, Grid3X3, List } from "lucide-react";
 import FilterSidebar from "./FilterSidebar";
 import ProductCard, { Product } from "./ProductCard";
+import ProductDetailModal from "./ProductDetailModal";
 import EmptyState from "./EmptyState";
 import TextReveal from "./TextReveal";
 
@@ -135,17 +137,31 @@ interface SearchResultsProps {
 }
 
 const SearchResults = ({ searchQuery, onBack }: SearchResultsProps) => {
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   // For demo, show results if query exists, empty if "notfound"
   const showEmpty = searchQuery.toLowerCase() === "notfound";
   const results = showEmpty ? [] : mockProducts;
 
+  const handleProductClick = (product: Product) => {
+    setSelectedProduct(product);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setTimeout(() => setSelectedProduct(null), 300);
+  };
+
   return (
-    <motion.div
-      className="min-h-screen bg-background"
-      variants={containerVariants}
-      initial="hidden"
-      animate="visible"
-    >
+    <>
+      <motion.div
+        className="min-h-screen bg-background"
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+      >
       {/* Header */}
       <motion.header 
         className="sticky top-0 z-50 bg-background/80 backdrop-blur-xl border-b border-white/10"
@@ -221,13 +237,13 @@ const SearchResults = ({ searchQuery, onBack }: SearchResultsProps) => {
                 className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6"
                 variants={gridContainerVariants}
                 initial="hidden"
-                animate="visible"
               >
                 {results.map((product, index) => (
                   <ProductCard 
                     key={product.id} 
                     product={product} 
                     index={index}
+                    onClick={handleProductClick}
                   />
                 ))}
               </motion.div>
@@ -253,6 +269,14 @@ const SearchResults = ({ searchQuery, onBack }: SearchResultsProps) => {
         FILTERS
       </motion.button>
     </motion.div>
+
+    {/* Product Detail Modal */}
+    <ProductDetailModal 
+      product={selectedProduct}
+      isOpen={isModalOpen}
+      onClose={handleCloseModal}
+    />
+  </>
   );
 };
 
